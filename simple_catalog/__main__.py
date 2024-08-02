@@ -8,17 +8,18 @@ from . import Client
 
 def main():
     parser = argparse.ArgumentParser(description="simple_catalog")
-    parser.add_argument("--host", help="database host", required=False)
-    parser.add_argument("--user", help="database user", required=False)
-    parser.add_argument("--password", help="database password", required=False)
-    parser.add_argument("--database", help="database", required=False)
-    parser.add_argument("--file", help="file to register", required=False)
+    parser.add_argument("--host", help="database host", required=True)
+    parser.add_argument("--user", help="database user", required=True)
+    parser.add_argument("--password", help="database password", required=True)
+    parser.add_argument("--database", help="database", required=True)
+    parser.add_argument("--file", help="file to actions", required=True)
+    parser.add_argument("--file_password", help="archive file password", required=False)
     parser.add_argument("--dir", help="dir to register", required=False)
     parser.add_argument("--salt", help="seed value used for hashing", required=False)
     parser.add_argument("--db", help="seed value used for hashing", required=False)
-    parser.add_argument("--product", help="product name")
-    parser.add_argument("--revision", help="revision number")
-    parser.add_argument("--hash", help="repository hash")
+    parser.add_argument("--product", help="product name", required=False)
+    parser.add_argument("--revision", help="revision number", required=False)
+    parser.add_argument("--hash", help="repository hash", required=False)
     parser.add_argument("--add", action="store_true", help="add file to catalog")
     parser.add_argument("--verbose", action="store_true")
     parser.add_argument(
@@ -27,6 +28,7 @@ def main():
     parser.add_argument(
         "--check", action="store_true", help="check if file exists in catalog"
     )
+    parser.add_argument("--inspect", action="store_true", help="inspect zip file")
 
     try:
         args = parser.parse_args()
@@ -35,7 +37,7 @@ def main():
         parser.print_help()
         sys.exit(-1)
 
-    if not args.add and not args.delete and not args.check:
+    if not args.add and not args.delete and not args.check and not args.inspect:
         parser.print_help()
         sys.exit(-1)
 
@@ -84,6 +86,8 @@ def main():
         else:
             for entry in result:
                 print(entry)
+    elif args.inspect:
+        client.inspect(args.file, args.file_password)
 
 
 if __name__ == "__main__":

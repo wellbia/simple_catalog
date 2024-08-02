@@ -1,10 +1,13 @@
 import os
 import socket
+import glob
+import shutil
 
 from datetime import datetime
 
 from .database import Database
 from .hash import get_sha256_hash, get_file_hash
+from .extractor import extract_file
 
 
 class Client(Database):
@@ -42,9 +45,6 @@ class Client(Database):
             self.__add_files_batch(batch)
 
     def __add_files_batch(self, batch):
-        if self.salt is None:
-            return
-
         values = []
         placeholders = []
         for file in batch:
@@ -160,3 +160,24 @@ class Client(Database):
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
         """
         self.execute(query)
+
+    def inspect(self, archive_file: str, archive_password: str = None):
+        extract_to = os.path.splitext(os.path.basename(archive_file))[0]
+        extract_file(archive_file, extract_to, archive_password)
+        for file in glob.glob(f"{extract_to}/**/*", recursive=True):
+            if os.path.isdir(file):
+                continue
+            result = self.check(file)
+            path = f"{os.path.sep}".join(file.split(os.path.sep)[1:])
+            if not result:
+                print(f"{path}, unverified")
+            else:
+                data = result[0]
+                filename = data[4]
+                git_hash = data[5]
+                md5_hash = data[6]
+                update_time = data[9]
+                print(
+                    f"{path}, verified, {filename}, {update_time}, {md5_hash}, {git_hash}"
+                )
+        shutil.rmtree(extract_to)
