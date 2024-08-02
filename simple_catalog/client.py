@@ -14,7 +14,7 @@ class Client(Database):
         user: str,
         password: str,
         database: str,
-        salt: str,
+        salt: str = None,
         product: str = None,
         revision: str = None,
         hash: str = None,
@@ -42,6 +42,9 @@ class Client(Database):
             self.__add_files_batch(batch)
 
     def __add_files_batch(self, batch):
+        if self.salt is None:
+            return
+
         values = []
         placeholders = []
         for file in batch:
@@ -80,6 +83,9 @@ class Client(Database):
         if not self.table_exists():
             self.create_table()
 
+        if self.salt is None:
+            return
+
         md5, sha256, entry = get_file_hash(
             file, self.product, self.revision, self.hash, self.salt
         )
@@ -109,6 +115,9 @@ class Client(Database):
 
     def delete(self, file: str) -> tuple:
         if not self.table_exists():
+            return None
+
+        if self.salt is None:
             return None
 
         md5, sha256, entry = get_file_hash(
