@@ -57,7 +57,7 @@ simple-catalog-cli --check --host localhost --user user --password passwd --data
 Check if files included in the compressed file exist in the catalog.  
 This feature supports ZIP, 7z, RAR file.
 ```shell
-simple-catalog-cli --inspect --host localhost --user user --password passwd --database catalog --file test.zip --file_password file_password
+simple-catalog-cli --inspect --host localhost --user user --password passwd --database catalog --file test.zip --file_password file_password --output_format json
 ```
 
 ## Dependencies
