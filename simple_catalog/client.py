@@ -2,6 +2,7 @@ import os
 import socket
 import glob
 import shutil
+import json
 
 from datetime import datetime
 
@@ -161,23 +162,44 @@ class Client(Database):
         """
         self.execute(query)
 
-    def inspect(self, archive_file: str, archive_password: str = None):
+    def inspect(
+        self,
+        archive_file: str,
+        archive_password: str = None,
+        output_format: str = None,
+    ):
+        result = self.__inspect_archive_files(archive_file, archive_password)
+        output_format = "text" if output_format is None else output_format
+        if output_format.lower() == "json":
+            print(json.dumps(result, indent=4))
+        else:
+            for item in result:
+                print(",".join(item.values()))
+
+    def __inspect_archive_files(
+        self, archive_file: str, archive_password: str = None
+    ) -> list:
         extract_to = os.path.splitext(os.path.basename(archive_file))[0]
         extract_file(archive_file, extract_to, archive_password)
+
+        return_value = []
         for file in glob.glob(f"{extract_to}/**/*", recursive=True):
             if os.path.isdir(file):
                 continue
             result = self.check(file)
             path = f"{os.path.sep}".join(file.split(os.path.sep)[1:])
             if not result:
-                print(f"{path}, unverified")
+                return_value.append({"path": path, "verify": "unverified"})
             else:
-                data = result[0]
-                filename = data[4]
-                git_hash = data[5]
-                md5_hash = data[6]
-                update_time = data[9]
-                print(
-                    f"{path}, verified, {filename}, {update_time}, {md5_hash}, {git_hash}"
+                return_value.append(
+                    {
+                        "path": path,
+                        "verifiy": "verified",
+                        "filename": result[0][4],
+                        "update_time": str(result[0][9]),
+                        "md5_hash": result[0][6],
+                        "git_hash": result[0][5],
+                    }
                 )
         shutil.rmtree(extract_to)
+        return return_value

@@ -22,6 +22,7 @@ def main():
     parser.add_argument("--hash", help="repository hash", required=False)
     parser.add_argument("--add", action="store_true", help="add file to catalog")
     parser.add_argument("--verbose", action="store_true")
+    parser.add_argument("--output_format", help="inspect output format", required=False)
     parser.add_argument(
         "--delete", action="store_true", help="delete file from catalog"
     )
@@ -87,7 +88,7 @@ def main():
             for entry in result:
                 print(entry)
     elif args.inspect:
-        client.inspect(args.file, args.file_password)
+        client.inspect(args.file, args.file_password, args.output_format)
 
 
 if __name__ == "__main__":
